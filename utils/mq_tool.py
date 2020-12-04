@@ -1,6 +1,8 @@
 import logging
 import json
 import pika
+import time
+from os import environ
 
 from utils.orders.post import update_final_order
 
@@ -8,8 +10,18 @@ logging.getLogger("pika").propagate = False
 
 class MQTool:
     def __init__(self, queue_name):
-        connection = pika.BlockingConnection(
-            pika.ConnectionParameters(host='localhost'))
+        for i in range(1, 4):
+            try:
+                connection = pika.BlockingConnection(
+                    pika.ConnectionParameters(host=environ["MQ_HOST"]))
+                logging.info("Connected to RMQ")
+                break
+            except pika.exceptions.AMQPConnectionError as err:
+                logging.info("Failed to connect to RMQ")
+                time.sleep(pow(2, i))
+                if i == 3:
+                    raise pika.exceptions.AMQPConnectionError(err)
+                continue
 
         self.queue_name = queue_name
         self.connection = connection

@@ -44,7 +44,12 @@ class Orders(Resource):
     def put(self, order_id):
         data_dict = request.get_json()
 
-        update_order(order_id=order_id, data_dict=data_dict)
+        ok = update_order(order_id=order_id, data_dict=data_dict)
+
+        if not ok:
+            return {
+                "error_msg": "Invalid order id"
+            }
 
         return {
             "message": "success"

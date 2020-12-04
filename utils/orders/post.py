@@ -3,6 +3,7 @@ from datetime import datetime
 from utils.helpers import generate_uuid_key
 
 import json
+import logging
 
 
 def add_order(data_dict):
@@ -26,6 +27,9 @@ def update_final_order(data_body):
 
     # pylint: disable=maybe-no-member
     order = OrdersModel.objects(transaction_id=data_dict["transaction_id"]).first()
+    if order == None:
+        logging.info("Invalid transaction_id")
+        return False
 
     OrdersModel.update(order,
         status="delivered",
@@ -34,3 +38,4 @@ def update_final_order(data_body):
         total_price=data_dict["total_price"]
     )
 
+    return True

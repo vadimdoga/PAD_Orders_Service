@@ -1,0 +1,46 @@
+version: "2.3"
+
+services:
+    rabbitMQ:
+        image: rabbitmq:3-management
+        ports:
+            - "15672:15672"
+            - "5672:5672"
+        volumes:
+            - rabbitMQ_volume:/var/lib/rabbitmq
+
+    orders_mongo_db:
+        image: mongo
+        environment:
+            - MONGO_INITDB_DATABASE=orders_service
+        volumes:
+            - orders_mongo_db_v:/data/db
+        ports:
+            - "27017:27017"
+
+    orders_service:
+        image: orders_service
+        build:
+            context: .
+            dockerfile: Dockerfile
+        links:
+            - orders_mongo_db
+        ports:
+            - "8082:8082"
+        environment:
+            MONGODB_HOST: orders_mongo_db
+            MONGODB_PORT: 27017
+            MONGODB_DB: orders_service
+            MQ_HOST: rabbitMQ
+            HOST: 0.0.0.0
+            PORT: 8082
+        entrypoint: ["/bin/bash", "-c"]
+        command: ["python main.py"]
+        restart: always
+        depends_on:
+            - orders_mongo_db
+            - rabbitMQ
+
+volumes:
+    orders_mongo_db_v:
+    rabbitMQ_volume:

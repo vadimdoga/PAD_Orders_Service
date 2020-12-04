@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_restful import Api
 from flask_mongoengine import MongoEngine
+from mongoengine import connect
 from utils.helpers import check_file_existance, get_configs
 
 import os
@@ -16,14 +17,21 @@ APP_ENVIRONMENT = os.getenv("APP_ENVIRONMENT")
 
 
 def main_config(configs):
-    app.config['MONGODB_SETTINGS'] = {
-        'db': configs["MONGODB_DB"],
-        'host': configs['MONGODB_HOST'],
-    }
-    db = MongoEngine()
+    db_host = f"{configs['MONGODB_HOST']}:{configs['MONGODB_PORT']}"
 
-    db.init_app(app)
-    print("Connected to db!")
+    client = connect(
+        'orders_service',
+        host=db_host,
+        port=int(configs['MONGODB_PORT'])
+    )
+
+    db = client['orders_service']
+
+    # client.orders_service.command("ping")
+
+    if client.orders_service.command("ping") == {u'ok': 1.0}:
+        print("Connected to db!")
+
 
     return db
 

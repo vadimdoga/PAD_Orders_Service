@@ -1,8 +1,8 @@
-from mongoengine import StringField, DateTimeField, ListField, IntField, ObjectIdField, FloatField
+from mongoengine import StringField, DateTimeField, ListField, IntField, ObjectIdField, FloatField, Document
 from bson.objectid import ObjectId
-from app.flask_config import db
 
-class OrdersModel(db.Document):
+
+class OrdersModel(Document):
     transaction_id = StringField(required=True)
     user_id = IntField(required=True)
     products = ListField(required=True)

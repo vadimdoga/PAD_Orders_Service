@@ -1,25 +1,32 @@
 from flask import Flask
 from flask_restful import Api
-from flask_pymongo import pymongo
+from flask_mongoengine import MongoEngine
 from utils.helpers import check_file_existance, get_configs
 
 import os
 import logging
 
+logging.getLogger().setLevel(logging.INFO)
 app = Flask(__name__)
 api = Api(app)
+
 db = None
-orders_collection = None
 
 APP_ENVIRONMENT = os.getenv("APP_ENVIRONMENT")
 
 
-def main_config():
-    MONGODB_URI = os.getenv("MONGODB_URI")
-    client = pymongo.MongoClient(MONGODB_URI)
-    db = client.get_database('orders_service')
-    orders_collection = pymongo.collection.Collection(db, 'orders')
+def main_config(configs):
+    app.config['MONGODB_SETTINGS'] = {
+        'db': configs["MONGODB_DB"],
+        'host': configs['MONGODB_HOST'],
+    }
+    db = MongoEngine()
+
+    db.init_app(app)
     print("Connected to db!")
+
+    return db
+
 
 def development_config():
     # read db_config
@@ -33,19 +40,24 @@ def development_config():
     config.read("app/db_config.ini")
 
     try:
-        config_dict = get_configs(config=config, section="ENVIRONMENT")
+        config_db_dict = get_configs(config=config, section="DATABASE")
     except NoSectionError:
         logging.error(
             "Error occured in db_config.ini file. Check for mistypes!")
         os._exit(0)
 
-    os.environ = config_dict
+    return config_db_dict
 
+
+def production_config():
+    return os.environ
 
 if APP_ENVIRONMENT == "development":
-    development_config()
+    configs = development_config()
 
-    main_config()
+    db = main_config(configs=configs)
 
 elif APP_ENVIRONMENT == "production":
-    main_config()
+    configs = production_config()
+
+    db = main_config(configs=configs)

@@ -1,13 +1,14 @@
+import logging
+import os
+
 from flask import Flask
 from flask_restful import Api
-from flask_mongoengine import MongoEngine
 from mongoengine import connect
+
 from utils.helpers import check_file_existance, get_configs
 
-import os
-import logging
+logger = logging.getLogger(__name__)
 
-logging.getLogger().setLevel(logging.INFO)
 app = Flask(__name__)
 api = Api(app)
 
@@ -30,8 +31,7 @@ def main_config(configs):
     # client.orders_service.command("ping")
 
     if client.orders_service.command("ping") == {u'ok': 1.0}:
-        print("Connected to db!")
-
+        logger.info("Connected to db!")
 
     return db
 
@@ -59,6 +59,7 @@ def development_config():
 
 def production_config():
     return os.environ
+
 
 if APP_ENVIRONMENT == "development":
     configs = development_config()

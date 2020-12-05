@@ -1,5 +1,14 @@
+import logging.config
 import os
 import uuid
+
+import yaml
+
+with open('log_config.yaml', 'r') as log_config_file:
+    if not os.path.exists('logs'):
+        os.makedirs('logs')
+    log_config = yaml.safe_load(log_config_file.read())
+    logging.config.dictConfig(log_config)
 
 
 def check_file_existance(file_path):

@@ -7,6 +7,7 @@ class OrdersModel(Document):
     user_id = IntField(required=True)
     products = ListField(required=True)
     status = StringField(required=True)
+    error_msg = StringField()
     total_price = FloatField(required=True)
     created_at = DateTimeField(required=True)
     updated_at = DateTimeField()

@@ -1,11 +1,12 @@
-from flask_restful import Resource
 from flask import request
+from flask_restful import Resource
 
-from utils.orders.post import add_order
-from utils.orders.get import get_orders
-from utils.orders.put import update_order
+from app.flask_config import app
 from utils.helpers import validate_keys, validate_list_keys
 from utils.mq_tool import MQTool
+from utils.orders.get import get_orders
+from utils.orders.post import add_order
+from utils.orders.put import update_order, get_order_by_id
 
 order_created_evt = MQTool(queue_name="ORDER_CREATED")
 
@@ -15,8 +16,8 @@ class Orders(Resource):
         data_list = get_orders()
 
         return {
-            "message": data_list
-        }, 200
+                   "message": data_list
+               }, 200
 
     def post(self):
         data_dict = request.get_json()
@@ -38,19 +39,46 @@ class Orders(Resource):
         })
 
         return {
-            "message": "success"
-        }, 201
+                   "id": str(new_order.id),
+                   "message": "success"
 
-    def put(self, order_id):
-        data_dict = request.get_json()
+               }, 201
 
-        ok = update_order(order_id=order_id, data_dict=data_dict)
 
-        if not ok:
-            return {
-                "error_msg": "Invalid order id"
-            }
+@app.route("/api/orders/<order_id>", methods=["PUT"])
+def put(order_id):
+    data_dict = request.get_json()
 
+    ok = update_order(order_id=order_id, data_dict=data_dict)
+
+    if not ok:
         return {
-            "message": "success"
-        }, 200
+            "message": "Order not found"
+        }
+
+    return {
+               "message": "success"
+           }, 200
+
+
+@app.route("/api/orders/<order_id>", methods=["GET"])
+def get(order_id):
+    order = get_order_by_id(order_id)
+    if order is None:
+        return {
+                   "message": "Order not found"
+               }, 404
+    payload = {
+        "id": str(order.id),
+        "transaction_id": order.transaction_id,
+        "user_id": order.user_id,
+        "products": order.products,
+        "status": order.status,
+        "error_msg": order.error_msg,
+        "created_at": str(order.created_at),
+        "updated_at": order.updated_at
+    }
+
+    payload = {k: v for k, v in payload.items() if v is not None}
+
+    return payload, 200

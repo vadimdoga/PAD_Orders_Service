@@ -29,3 +29,5 @@ toml==0.10.2
 werkzeug==1.0.1
 wrapt==1.12.1
 wtforms==2.3.3
+python-json-logger==2.0.1
+PyYAML~=5.3.1

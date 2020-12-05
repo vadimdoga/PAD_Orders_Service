@@ -13,7 +13,7 @@ def get_order_by_id(order_id):
 def update_order(order_id, data_dict):
     order = get_order_by_id(order_id=order_id)
     if order == None:
-        logging.info("Invalid order_id")
+        logging.info("Invalid order id")
         return False
 
     OrdersModel.update(order, status=data_dict["new_status"], updated_at=datetime.now())

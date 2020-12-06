@@ -40,6 +40,7 @@ class Orders(Resource):
 
         return {
                    "id": str(new_order.id),
+                   "transaction_id": str(new_order.transaction_id),
                    "message": "success"
 
                }, 201
@@ -76,6 +77,7 @@ def get(order_id):
         "status": order.status,
         "error_msg": order.error_msg,
         "created_at": str(order.created_at),
+        **({"total_price": order.total_price} if order.status == "processed" else {}),
         "updated_at": order.updated_at
     }
 

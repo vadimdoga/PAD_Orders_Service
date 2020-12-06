@@ -14,6 +14,7 @@ def get_orders():
             "status": order.status,
             # show error message only when status is failed
             **({"error_msg": order.error_msg} if order.status == "failed" else {}),
+            **({"total_price": order.total_price} if order.status == "processed" else {}),
             "created_at": str(order.created_at),
             "updated_at": str(order.updated_at)
         })

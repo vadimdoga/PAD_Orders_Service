@@ -1,15 +1,23 @@
 import logging.config
+import logging
 import os
 import uuid
-
+from envyaml import EnvYAML
 import yaml
 
 with open('log_config.yaml', 'r') as log_config_file:
     if not os.path.exists('logs'):
         os.makedirs('logs')
-    log_config = yaml.safe_load(log_config_file.read())
+    log_config = EnvYAML("log_config.yaml")
     logging.config.dictConfig(log_config)
 
+# host = 'localhost'
+# port = 9500
+# test_logger = logging.getLogger()
+# test_logger.setLevel(logging.DEBUG)
+#
+# async_handler = AsynchronousLogstashHandler(host, port, database_path=None)
+# test_logger.addHandler(async_handler)
 
 def check_file_existance(file_path):
     """Check if 'db_config.ini' file exists"""

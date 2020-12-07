@@ -1,6 +1,57 @@
 version: "2.3"
 
 services:
+    elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.10.0
+        container_name: elasticsearch
+        hostname: elasticsearch
+        environment:
+            - "discovery.type=single-node"
+        ports:
+            - 9200:9200
+            - 9300:9300
+        healthcheck:
+            test: ["CMD", "curl", "-s", "-f", "http://localhost:9200/_cat/health"]
+            interval: 3s
+            timeout: 3s
+            retries: 10
+    kibana:
+        image: docker.elastic.co/kibana/kibana:7.10.0
+        container_name: kibana
+        hostname: kibana
+        ports:
+            - 5601:5601
+        links:
+            - elasticsearch:elasticsearch
+        depends_on:
+            elasticsearch:
+                condition: service_healthy
+        healthcheck:
+            test: ["CMD", "curl", "-s", "-f", "http://localhost:5601/api/status"]
+            interval: 3s
+            timeout: 3s
+            retries: 50
+
+    logstash:
+        image: docker.elastic.co/logstash/logstash:7.10.0
+        container_name: logstash
+        hostname: logstash
+        ports:
+            - 9600:9600
+            - 9500:9500
+        volumes:
+            - ./config/logstash.conf:/etc/logstash/conf.d/logstash.conf
+            - ./config/logstash.yml:/usr/share/logstash/config/logstash.yml
+        command: logstash -f /etc/logstash/conf.d/logstash.conf
+        environment:
+            LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+            ELASTIC_HOST: elasticsearch:9200
+        depends_on:
+            elasticsearch:
+                condition: service_healthy
+        links:
+            - elasticsearch:elasticsearch
+
     rabbitMQ:
         image: rabbitmq:3-management
         ports:
@@ -27,6 +78,8 @@ services:
             - orders_mongo_db
         ports:
             - "8082:8082"
+        volumes:
+            - ./logs:/share/logs
         environment:
             MONGODB_HOST: orders_mongo_db
             MONGODB_PORT: 27017
@@ -34,6 +87,7 @@ services:
             MQ_HOST: rabbitMQ
             HOST: 0.0.0.0
             PORT: 8082
+            LOG_HOST: logstash
         entrypoint: ["/bin/bash", "-c"]
         command: ["python main.py"]
         restart: always

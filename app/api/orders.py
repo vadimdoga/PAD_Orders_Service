@@ -7,12 +7,12 @@ from utils.mq_tool import MQTool
 from utils.orders.get import get_orders
 from utils.orders.post import add_order
 from utils.orders.put import update_order, get_order_by_id
-
 order_created_evt = MQTool(queue_name="ORDER_CREATED")
 
 
 class Orders(Resource):
     def get(self):
+
         data_list = get_orders()
 
         return {

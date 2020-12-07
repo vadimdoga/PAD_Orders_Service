@@ -1,0 +1,31 @@
+filebeat.modules:
+- module: system
+  syslog:
+    enabled: true
+  auth:
+    enabled: true
+- module: auditd
+  log:
+    # - Does not look like Auditd is supported in Alpine linux: https://github.com/linuxkit/linuxkit/issues/52
+    # - CentOS does not need us to install the audit system, it ships as standard. If you are using Ubuntu, though,
+    # this is probably something you would want to install. (sudo apt-get install -y auditd audispd-plugins)
+    enabled: true
+    
+filebeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+  reload.enabled: false
+
+filebeat.inputs:
+- type: log
+  paths:
+    - /share/logs/orders-api.log
+
+filebeat.autodiscover:
+  providers:
+    - type: docker
+      hints.enabled: true
+
+output.logstash:
+  hosts: ["logstash:5044"]
+  loadbalance: true
+  index: filebeat
